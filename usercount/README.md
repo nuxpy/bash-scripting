@@ -4,23 +4,31 @@ Este _script_ permite contar la cantidad de usuarios creados en sistemas _GNU Li
 
 <a href="https://wiki.nuxpy.com/index.php/Usercount">Información general del <i>script</i></a>
 
-### Funcionamiento
+### Instalación y desinstalación
 
 Como usuario **root**:
 
-* Instalar
+**Instalar**:
 
     sh install.sh
 
-* Desinstalar
- 
+**Desinstalar**:
+
     usercount -U
 
-Como cualquier usuario:
+### Funcionamiento
 
-* Ver información de ayuda:
+**Ver información de ayuda**:
 
     usercount -h
+
+**Listar usuarios del sistema**:
+
+    usercount -l
+
+**Listar usuarios del sistema y toda información de estos**:
+
+    usercount -a
 
 ---
 ### Autor
