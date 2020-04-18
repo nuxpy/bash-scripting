@@ -1,0 +1,147 @@
+#! /bin/bash
+
+#####################################################
+# Script for count the users on the system with home
+# Version 1.3
+# Licence GNU-GPL
+# Félix E. Urbina C.
+# http://sateliteguayana.com.ve
+#####################################################
+
+info() {
+	echo ""
+	echo "Script for count the users with home on the system, "
+	echo "Version 1.3 Licence GNU-GPL, Made on bash 3.2.39(1)-release."
+	echo ""
+}
+
+user_list() {
+	. /etc/adduser.conf
+
+	FILEIN="/etc/passwd"
+
+	cat $FILEIN | cut -d : -f3 | while read CMD
+	do
+		if [ $CMD -ge $FIRST_UID ] && [ $CMD -le $LAST_UID ]; then
+			grep x:$CMD $FILEIN | cut -d : -f1
+		fi
+	done
+}
+
+count() {
+	. /etc/adduser.conf
+
+	FILEIN="/etc/passwd"
+	cat $FILEIN | cut -d : -f3 | while read CMD 
+	do
+		if [ $CMD -ge $FIRST_UID ] && [ $CMD -le $LAST_UID ]; then
+			let i=$i+1 
+			echo $i > $HOME/.mark-$UID 
+		else
+			echo 0 > $HOME/.mark-$UID 
+		fi
+	done
+	cat $HOME/.mark-$UID
+}
+
+user_home() {
+	. /etc/adduser.conf
+
+	PATH_HOME="/home/"
+	FILEIN="/etc/passwd"
+	cat $FILEIN | cut -d : -f3 | while read CMD
+	do
+		if [ $CMD -ge $FIRST_UID ] && [ $CMD -le $LAST_UID ]; then
+			USER_ALIAS=`grep x:$CMD $FILEIN | cut -d : -f1`
+			if [ -d /home/$USER_ALIAS ]; then
+				echo -e "Path Home \t /home/"$USER_ALIAS
+			else
+				echo -e "No Path Home \t /home/"$USER_ALIAS
+			fi
+		fi
+	done
+}
+
+all() {
+	. /etc/adduser.conf
+
+	FILEIN="/etc/passwd"
+	cat $FILEIN | cut -d : -f3 | while read CMD
+	do
+		if [ $CMD -ge $FIRST_UID ] && [ $CMD -le $LAST_UID ]; then
+			let i=$i+1
+			USER_ALIAS=`grep x:$CMD $FILEIN | cut -d : -f1`
+			REAL_PATH_HOME=`grep x:$CMD $FILEIN | cut -d : -f6`
+			if [ -d /home/$USER_ALIAS ]; then
+				PATH_HOME="Path Home \t /home/$USER_ALIAS \t Real Home $REAL_PATH_HOME" 
+			else
+				PATH_HOME="No Path Home \t /home/$USER_ALIAS \t Real Home $REAL_PATH_HOME" 
+			fi
+			echo -e $i $CMD $USER_ALIAS "\t "$PATH_HOME
+		fi
+	done
+}
+
+helper() { # Help provisional
+	echo ""
+	echo -e "\t usercount -a \t Displayed all the options."
+	echo -e "\t usercount -c \t Displayed only the number of user with home on the system."
+	echo -e "\t usercount -l \t List only username of user with home on the system."
+	echo -e "\t usercount -i \t Displayed the information of the script." 
+	echo -e "\t usercount -k \t Displayed if exist a path home the each user."
+	echo -e "\t usercount -U \t Erased only as Super User this script." 
+	echo ""
+}
+
+Uninstall() {
+	if [ $UID == 0 ]; then
+		echo -n "You are sure eraser this script?(y/n) "
+		read RESP
+		case $RESP in 
+			y|Y)
+				find /home -name ".mark-*" -delete
+				find /root -name ".mark-*" -delete
+				rm -rf /usr/local/bin/usercount
+				echo "Finished sucessfully..."
+			;;
+			n|N)
+				exit 0
+			;;
+			*)
+				Uninstall
+			;;
+		esac
+	else
+		echo "Sorry, you not have permission..."
+	fi
+}
+
+case "$1" in
+	-a|a) # Print all options
+		all
+	;;
+	-c|c) # Count all users
+		count
+	;;
+	-h|h)
+		# man usercount
+		helper # Function provisional
+	;;
+	-i|i)
+		info
+	;;
+	-k|k)
+		user_home
+	;;
+	-l|l) # List all users
+		user_list
+	;;
+	-U) # Unistall this script
+		Uninstall
+	;;
+	*)
+		echo "Use usercount -h for more information."
+	;;
+esac
+
+exit 0
